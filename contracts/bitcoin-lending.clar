@@ -273,3 +273,44 @@
         (ok true)
     )
 )
+
+;; Update price feed for an asset
+(define-public (update-price-feed (asset (string-ascii 3)) (new-price uint))
+    (begin
+        (asserts! (is-eq tx-sender CONTRACT-OWNER) ERR-NOT-AUTHORIZED)
+        (asserts! (is-valid-asset asset) ERR-INVALID-ASSET)
+        (asserts! (is-valid-price new-price) ERR-INVALID-PRICE)
+        
+        (ok (map-set collateral-prices
+            {asset: asset}
+            {price: new-price}
+        ))
+    )
+)
+
+;; Read-Only Functions
+
+;; Get details for a specific loan
+(define-read-only (get-loan-details (loan-id uint))
+    (map-get? loans {loan-id: loan-id})
+)
+
+;; Get all loans for a specific user
+(define-read-only (get-user-loans (user principal))
+    (map-get? user-loans {user: user})
+)
+
+;; Get platform statistics
+(define-read-only (get-platform-stats)
+    {
+        total-btc-locked: (var-get total-btc-locked),
+        total-loans-issued: (var-get total-loans-issued),
+        minimum-collateral-ratio: (var-get minimum-collateral-ratio),
+        liquidation-threshold: (var-get liquidation-threshold)
+    }
+)
+
+;; Get list of supported assets
+(define-read-only (get-valid-assets)
+    VALID-ASSETS
+)
